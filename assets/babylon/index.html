@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Flutter Babylon Demo</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        background-color: #0f172a;
+      }
+
+      #renderCanvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+        display: block;
+      }
+
+      .loading {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #94a3b8;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        letter-spacing: 0.08em;
+      }
+    </style>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+  </head>
+  <body>
+    <canvas id="renderCanvas"></canvas>
+    <div id="loading" class="loading">Loading Babylon scene…</div>
+    <script>
+      const canvas = document.getElementById("renderCanvas");
+      const loading = document.getElementById("loading");
+      const engine = new BABYLON.Engine(canvas, true, {
+        preserveDrawingBuffer: true,
+        stencil: true,
+        disableWebGL2Support: false,
+      });
+
+      const createScene = function () {
+        const scene = new BABYLON.Scene(engine);
+        scene.clearColor = new BABYLON.Color4(15 / 255, 23 / 255, 42 / 255, 1);
+
+        const camera = new BABYLON.ArcRotateCamera(
+          "Camera",
+          -Math.PI / 2,
+          Math.PI / 2.5,
+          6,
+          new BABYLON.Vector3(0, 0.5, 0),
+          scene
+        );
+        camera.attachControl(canvas, true);
+        camera.wheelPrecision = 50;
+
+        const light = new BABYLON.HemisphericLight(
+          "light",
+          new BABYLON.Vector3(0, 1, 0),
+          scene
+        );
+        light.intensity = 0.9;
+
+        const ground = BABYLON.MeshBuilder.CreateGround(
+          "ground",
+          { width: 6, height: 6 },
+          scene
+        );
+        const groundMaterial = new BABYLON.StandardMaterial("groundMat", scene);
+        groundMaterial.diffuseColor = new BABYLON.Color3(0.1, 0.2, 0.35);
+        ground.material = groundMaterial;
+
+        const sphere = BABYLON.MeshBuilder.CreateSphere(
+          "sphere",
+          { diameter: 1.2 },
+          scene
+        );
+        sphere.position.y = 1;
+        const sphereMaterial = new BABYLON.StandardMaterial("sphereMat", scene);
+        sphereMaterial.diffuseColor = new BABYLON.Color3(0.6, 0.8, 1);
+        sphere.material = sphereMaterial;
+
+        const box = BABYLON.MeshBuilder.CreateBox(
+          "box",
+          { size: 0.8 },
+          scene
+        );
+        box.position = new BABYLON.Vector3(-1.5, 0.4, -1.5);
+        const boxMaterial = new BABYLON.StandardMaterial("boxMat", scene);
+        boxMaterial.diffuseColor = new BABYLON.Color3(1, 0.6, 0.4);
+        box.material = boxMaterial;
+
+        const skybox = BABYLON.MeshBuilder.CreateBox(
+          "skyBox",
+          { size: 50 },
+          scene
+        );
+        const skyboxMaterial = new BABYLON.StandardMaterial("skyBoxMat", scene);
+        skyboxMaterial.backFaceCulling = false;
+        skyboxMaterial.disableLighting = true;
+        skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+        skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+        skyboxMaterial.emissiveColor = new BABYLON.Color3(0.1, 0.15, 0.3);
+        skybox.material = skyboxMaterial;
+        skybox.infiniteDistance = true;
+
+        const guiTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+          "UI"
+        );
+        const button = BABYLON.GUI.Button.CreateSimpleButton(
+          "btn",
+          "Spin Sphere"
+        );
+        button.width = "160px";
+        button.height = "48px";
+        button.color = "#e2e8f0";
+        button.background = "#1e293b";
+        button.cornerRadius = 6;
+        button.thickness = 0;
+        button.onPointerUpObservable.add(() => {
+          sphere.rotation.y += Math.PI / 2;
+        });
+        guiTexture.addControl(button);
+
+        return scene;
+      };
+
+      const scene = createScene();
+
+      engine.runRenderLoop(function () {
+        scene.render();
+        loading.style.display = "none";
+      });
+
+      window.addEventListener("resize", function () {
+        engine.resize();
+      });
+    </script>
+  </body>
+</html>
